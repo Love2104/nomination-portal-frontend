@@ -1,11 +1,14 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api',
+    baseURL: 'https://nomination-portal-backend.onrender.com/api', // Updated to Render backend
     headers: {
         'Content-Type': 'application/json'
     }
 });
+
+console.log('API Config Loaded:', api.defaults.baseURL); // Cache Buster: 2026-02-14T16:55
+
 
 // Request interceptor - add auth token
 api.interceptors.request.use(
