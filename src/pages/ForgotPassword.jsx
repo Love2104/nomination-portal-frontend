@@ -75,7 +75,7 @@ export default function ForgotPassword() {
                                     <input
                                         type="email"
                                         className="form-input"
-                                        placeholder="yourname@iitk.ac.in"
+                                        placeholder="Enter your email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         required

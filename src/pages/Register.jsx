@@ -74,17 +74,16 @@ export default function Register() {
                         {step === 1 ? (
                             <form onSubmit={handleSendOTP}>
                                 <div className="form-group">
-                                    <label className="form-label">IITK Email Address</label>
+                                    <label className="form-label">Email Address</label>
                                     <input
                                         type="email"
                                         className="form-input"
-                                        placeholder="yourname@iitk.ac.in"
+                                        placeholder="Enter your email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         required
-                                        pattern=".*@iitk\.ac\.in$"
                                     />
-                                    <div className="form-help">Must be a valid IITK email address</div>
+                                    <div className="form-help">We'll send an OTP to verify your email</div>
                                 </div>
 
                                 <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
