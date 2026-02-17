@@ -20,8 +20,9 @@ const PublicRoute = ({ children }) => {
     }
 
     if (isAuthenticated) {
-        // Redirect based on role
-        switch (user?.role) {
+        // Redirect based on role (normalize to lowercase for Prisma enum)
+        const role = user?.role?.toLowerCase();
+        switch (role) {
             case 'superadmin': return <Navigate to="/superadmin" replace />;
             case 'candidate': return <Navigate to="/candidate" replace />;
             case 'reviewer': return <Navigate to="/reviewer" replace />;
@@ -44,7 +45,7 @@ const ProtectedRoute = ({ children, requiredRole }) => {
         return <Navigate to="/login" replace />;
     }
 
-    if (requiredRole && user?.role !== requiredRole) {
+    if (requiredRole && user?.role?.toLowerCase() !== requiredRole) {
         return <Navigate to="/" replace />;
     }
 
@@ -63,7 +64,7 @@ const DashboardRouter = () => {
         return <Navigate to="/login" replace />;
     }
 
-    switch (user.role) {
+    switch (user.role?.toLowerCase()) {
         case 'superadmin':
             return <Navigate to="/superadmin" replace />;
         case 'candidate':

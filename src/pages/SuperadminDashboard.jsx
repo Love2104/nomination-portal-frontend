@@ -40,7 +40,8 @@ export default function SuperadminDashboard() {
     const fetchStats = async () => {
         try {
             const response = await api.get('/superadmin/statistics');
-            setStats(response.data.statistics);
+            // Backend returns { data, statistics } – prefer statistics if present
+            setStats(response.data.statistics || response.data.data);
         } catch (err) {
             console.error('Failed to fetch stats:', err);
         }
@@ -51,12 +52,11 @@ export default function SuperadminDashboard() {
         if (!configData) return null;
         const formatted = { ...configData };
         const dateFields = [
-            'nominationStartDate', 'nominationEndDate',
-            'proposerSeconderStartDate', 'proposerSeconderEndDate',
-            'campaignerStartDate', 'campaignerEndDate',
-            'manifestoPhase1StartDate', 'manifestoPhase1EndDate',
-            'manifestoPhase2StartDate', 'manifestoPhase2EndDate',
-            'manifestoFinalStartDate', 'manifestoFinalEndDate'
+            'nominationStart', 'nominationEnd',
+            'campaignerStart', 'campaignerEnd',
+            'manifestoPhase1Start', 'manifestoPhase1End',
+            'manifestoPhase2Start', 'manifestoPhase2End',
+            'manifestoFinalStart', 'manifestoFinalEnd'
         ];
 
         dateFields.forEach(field => {
@@ -148,7 +148,7 @@ export default function SuperadminDashboard() {
 
                 {/* Tabs */}
                 <div className="flex gap-sm mb-lg" style={{ flexWrap: 'wrap' }}>
-                    {['deadlines', 'limits', 'nominations', 'reviewers', 'statistics', 'export'].map(tab => (
+                    {['deadlines', 'limits', 'nominations', 'admins', 'reviewers', 'statistics', 'export'].map(tab => (
                         <button
                             key={tab}
                             className={`btn ${activeTab === tab ? 'btn-primary' : 'btn-secondary'}`}
@@ -170,56 +170,57 @@ export default function SuperadminDashboard() {
                                 <div className="grid grid-2">
                                     <div className="form-group">
                                         <label className="form-label">Nomination Start</label>
-                                        <input type="datetime-local" className="form-input" name="nominationStartDate" value={config?.nominationStartDate || ''} onChange={handleInputChange} />
+                                        <input type="datetime-local" className="form-input" name="nominationStart" value={config?.nominationStart || ''} onChange={handleInputChange} />
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Nomination End</label>
-                                        <input type="datetime-local" className="form-input" name="nominationEndDate" value={config?.nominationEndDate || ''} onChange={handleInputChange} />
+                                        <input type="datetime-local" className="form-input" name="nominationEnd" value={config?.nominationEnd || ''} onChange={handleInputChange} />
                                     </div>
 
+                                    {/* Proposer/Seconder use the same window as nomination (read-only info) */}
                                     <div className="form-group">
                                         <label className="form-label">Proposer/Seconder Start</label>
-                                        <input type="datetime-local" className="form-input" name="proposerSeconderStartDate" value={config?.proposerSeconderStartDate || ''} onChange={handleInputChange} />
+                                        <input type="datetime-local" className="form-input" value={config?.nominationStart || ''} readOnly />
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Proposer/Seconder End</label>
-                                        <input type="datetime-local" className="form-input" name="proposerSeconderEndDate" value={config?.proposerSeconderEndDate || ''} onChange={handleInputChange} />
+                                        <input type="datetime-local" className="form-input" value={config?.nominationEnd || ''} readOnly />
                                     </div>
 
                                     <div className="form-group">
                                         <label className="form-label">Campaigning Start</label>
-                                        <input type="datetime-local" className="form-input" name="campaignerStartDate" value={config?.campaignerStartDate || ''} onChange={handleInputChange} />
+                                        <input type="datetime-local" className="form-input" name="campaignerStart" value={config?.campaignerStart || ''} onChange={handleInputChange} />
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Campaigning End</label>
-                                        <input type="datetime-local" className="form-input" name="campaignerEndDate" value={config?.campaignerEndDate || ''} onChange={handleInputChange} />
+                                        <input type="datetime-local" className="form-input" name="campaignerEnd" value={config?.campaignerEnd || ''} onChange={handleInputChange} />
                                     </div>
 
                                     <div className="form-group">
                                         <label className="form-label">Manifesto Phase 1 Start</label>
-                                        <input type="datetime-local" className="form-input" name="manifestoPhase1StartDate" value={config?.manifestoPhase1StartDate || ''} onChange={handleInputChange} />
+                                        <input type="datetime-local" className="form-input" name="manifestoPhase1Start" value={config?.manifestoPhase1Start || ''} onChange={handleInputChange} />
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Manifesto Phase 1 End</label>
-                                        <input type="datetime-local" className="form-input" name="manifestoPhase1EndDate" value={config?.manifestoPhase1EndDate || ''} onChange={handleInputChange} />
+                                        <input type="datetime-local" className="form-input" name="manifestoPhase1End" value={config?.manifestoPhase1End || ''} onChange={handleInputChange} />
                                     </div>
 
                                     <div className="form-group">
                                         <label className="form-label">Manifesto Phase 2 Start</label>
-                                        <input type="datetime-local" className="form-input" name="manifestoPhase2StartDate" value={config?.manifestoPhase2StartDate || ''} onChange={handleInputChange} />
+                                        <input type="datetime-local" className="form-input" name="manifestoPhase2Start" value={config?.manifestoPhase2Start || ''} onChange={handleInputChange} />
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Manifesto Phase 2 End</label>
-                                        <input type="datetime-local" className="form-input" name="manifestoPhase2EndDate" value={config?.manifestoPhase2EndDate || ''} onChange={handleInputChange} />
+                                        <input type="datetime-local" className="form-input" name="manifestoPhase2End" value={config?.manifestoPhase2End || ''} onChange={handleInputChange} />
                                     </div>
 
                                     <div className="form-group">
                                         <label className="form-label">Final Manifesto Start</label>
-                                        <input type="datetime-local" className="form-input" name="manifestoFinalStartDate" value={config?.manifestoFinalStartDate || ''} onChange={handleInputChange} />
+                                        <input type="datetime-local" className="form-input" name="manifestoFinalStart" value={config?.manifestoFinalStart || ''} onChange={handleInputChange} />
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Final Manifesto End</label>
-                                        <input type="datetime-local" className="form-input" name="manifestoFinalEndDate" value={config?.manifestoFinalEndDate || ''} onChange={handleInputChange} />
+                                        <input type="datetime-local" className="form-input" name="manifestoFinalEnd" value={config?.manifestoFinalEnd || ''} onChange={handleInputChange} />
                                     </div>
                                 </div>
                                 <button type="submit" className="btn btn-primary mt-md" disabled={saving}>
@@ -263,6 +264,11 @@ export default function SuperadminDashboard() {
                 {/* Nominations Tab */}
                 {activeTab === 'nominations' && (
                     <NominationsTab setError={setError} setSuccess={setSuccess} />
+                )}
+
+                {/* Admins Tab */}
+                {activeTab === 'admins' && (
+                    <AdminsTab setError={setError} setSuccess={setSuccess} />
                 )}
 
                 {/* Reviewers Tab */}
@@ -380,8 +386,8 @@ export default function SuperadminDashboard() {
                                     <div className="card bg-light p-md">
                                         <h4>Nominations</h4>
                                         <p>Total Nominations: <strong>{stats.nominations.total}</strong></p>
-                                        <p>Submitted: <strong>{stats.nominations.submitted}</strong></p>
-                                        <p>Drafts: <strong>{stats.nominations.draft}</strong></p>
+                                        <p>Pending: <strong>{stats.nominations.pending}</strong></p>
+                                        <p>Accepted: <strong>{stats.nominations.accepted}</strong></p>
                                     </div>
                                     <div className="card bg-light p-md">
                                         <h4>Supporters</h4>
@@ -504,8 +510,8 @@ function NominationsTab({ setError, setSuccess }) {
                                         <td>{nom.candidate?.rollNo}</td>
                                         <td>{nom.positions?.join(', ')}</td>
                                         <td>
-                                            <span className={`badge ${nom.status === 'verified' ? 'badge-success' :
-                                                nom.status === 'rejected' ? 'badge-error' : 'badge-warning'
+                                            <span className={`badge ${nom.status === 'ACCEPTED' ? 'badge-success' :
+                                                nom.status === 'REJECTED' || nom.status === 'rejected' ? 'badge-error' : 'badge-warning'
                                                 }`}>
                                                 {nom.status.toUpperCase()}
                                             </span>
@@ -514,13 +520,13 @@ function NominationsTab({ setError, setSuccess }) {
                                             {nom.status === 'submitted' && (
                                                 <div className="flex gap-sm">
                                                     <button
-                                                        onClick={() => handleVerifyBox(nom.id, 'verified')}
+                                                        onClick={() => handleVerifyBox(nom.id, 'ACCEPTED')}
                                                         className="btn btn-success btn-sm"
                                                     >
                                                         Verify
                                                     </button>
                                                     <button
-                                                        onClick={() => handleVerifyBox(nom.id, 'rejected')}
+                                                        onClick={() => handleVerifyBox(nom.id, 'REJECTED')}
                                                         className="btn btn-error btn-sm"
                                                     >
                                                         Reject
@@ -537,5 +543,106 @@ function NominationsTab({ setError, setSuccess }) {
 
             </div >
         </div >
+    );
+}
+
+function AdminsTab({ setError, setSuccess }) {
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [savingId, setSavingId] = useState(null);
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    const fetchUsers = async () => {
+        setLoading(true);
+        try {
+            const response = await api.get('/superadmin/users');
+            setUsers(response.data.data || []);
+        } catch (err) {
+            console.error('Fetch users error:', err);
+            setError('Failed to load users');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleMakeAdmin = async (userId) => {
+        if (!window.confirm('Make this user an admin? They will have nomination management permissions.')) return;
+        setSavingId(userId);
+        setError('');
+        setSuccess('');
+        try {
+            await api.post('/superadmin/create-admin', { userId });
+            setSuccess('Admin role assigned successfully');
+            await fetchUsers();
+        } catch (err) {
+            console.error('Create admin error:', err);
+            setError(err.response?.data?.message || 'Failed to assign admin role');
+        } finally {
+            setSavingId(null);
+        }
+    };
+
+    return (
+        <div className="card">
+            <div className="card-header">
+                <h3 className="card-title">Admin Accounts</h3>
+                <p className="text-muted">
+                    Promote existing registered users to <strong>Admin</strong>. Admins log in with their normal email/password.
+                </p>
+            </div>
+            <div className="card-body">
+                {loading ? (
+                    <div className="loading-container"><div className="spinner"></div></div>
+                ) : users.length === 0 ? (
+                    <p className="text-muted text-center">No users found.</p>
+                ) : (
+                    <div className="table-responsive">
+                        <table className="table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Roll No</th>
+                                    <th>Department</th>
+                                    <th>Role</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {users.map(u => (
+                                    <tr key={u.id}>
+                                        <td>{u.name}</td>
+                                        <td>{u.email}</td>
+                                        <td>{u.rollNo}</td>
+                                        <td>{u.department}</td>
+                                        <td>
+                                            <span className="badge">
+                                                {u.role}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {u.role === 'ADMIN' || u.role === 'SUPERADMIN' ? (
+                                                <span className="text-muted text-sm">Already {u.role}</span>
+                                            ) : (
+                                                <button
+                                                    className="btn btn-primary btn-sm"
+                                                    onClick={() => handleMakeAdmin(u.id)}
+                                                    disabled={savingId === u.id}
+                                                >
+                                                    {savingId === u.id ? 'Assigning...' : 'Make Admin'}
+                                                </button>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+        </div>
     );
 }

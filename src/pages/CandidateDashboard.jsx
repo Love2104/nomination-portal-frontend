@@ -111,7 +111,8 @@ export default function CandidateDashboard() {
         setSupportersLoading(true);
         try {
             const response = await api.get(`/supporters/candidate/${user.id}`);
-            setSupporters(response.data.requests);
+            // Backend returns { data, requests } – prefer explicit requests
+            setSupporters(response.data.requests || response.data.data || []);
         } catch (err) {
             console.error('Fetch supporters error:', err);
             setSupporterError('Failed to load supporter requests');
@@ -383,9 +384,10 @@ function ManifestoUploadSection({ phase, nominationId }) {
     const fetchManifestoData = async () => {
         try {
             const res = await api.get(`/manifestos/${nominationId}/${phase}`);
-            setManifesto(res.data.manifesto);
-            if (res.data.manifesto) {
-                fetchComments(res.data.manifesto.id);
+            const m = res.data.manifesto || res.data.data || null;
+            setManifesto(m);
+            if (m) {
+                fetchComments(m.id);
             }
         } catch (err) {
             if (err.response?.status !== 404) {
@@ -399,7 +401,7 @@ function ManifestoUploadSection({ phase, nominationId }) {
     const fetchComments = async (manifestoId) => {
         try {
             const res = await api.get(`/reviewers/comments/${manifestoId}`);
-            setComments(res.data.comments);
+            setComments(res.data.comments || res.data.data || []);
         } catch (err) {
             console.error('Fetch comments error:', err);
         }
@@ -426,7 +428,8 @@ function ManifestoUploadSection({ phase, nominationId }) {
             const res = await api.post('/manifestos/upload', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            setManifesto(res.data.manifesto);
+            const m = res.data.manifesto || res.data.data || null;
+            setManifesto(m);
             setSuccess('Manifesto uploaded successfully!');
         } catch (err) {
             console.error('Upload error:', err);
@@ -490,23 +493,23 @@ function ManifestoUploadSection({ phase, nominationId }) {
                     </button>
 
                     {commentsVisible && (
-                        <div className="mt-sm bg-light p-sm rounded">
-                            {comments.length === 0 ? (
-                                <p className="text-sm text-muted">No comments yet.</p>
-                            ) : (
-                                <ul style={{ listStyle: 'none', padding: 0 }}>
-                                    {comments.map(c => (
-                                        <li key={c.id} className="mb-sm border-bottom pb-sm last:border-none">
-                                            <div className="flex-between">
-                                                <strong>{c.reviewerName}</strong>
-                                                <span className="text-xs text-muted">{new Date(c.createdAt).toLocaleDateString()}</span>
+                                            <div className="mt-sm bg-light p-sm rounded">
+                                                {comments.length === 0 ? (
+                                                    <p className="text-sm text-muted">No comments yet.</p>
+                                                ) : (
+                                                    <ul style={{ listStyle: 'none', padding: 0 }}>
+                                                        {comments.map(c => (
+                                                            <li key={c.id} className="mb-sm border-bottom pb-sm last:border-none">
+                                                                <div className="flex-between">
+                                                                    <strong>{c.reviewerName}</strong>
+                                                                    <span className="text-xs text-muted">{new Date(c.createdAt).toLocaleDateString()}</span>
+                                                                </div>
+                                                                <p className="text-sm mt-xs">{c.comment || c.content}</p>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
                                             </div>
-                                            <p className="text-sm mt-xs">{c.comment}</p>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </div>
                     )}
                 </div>
             )}

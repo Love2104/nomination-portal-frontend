@@ -27,7 +27,8 @@ export default function ReviewerDashboard() {
         setLoading(true);
         try {
             const response = await api.get('/reviewers/manifestos');
-            setManifestos(response.data.manifestos);
+            // Backend returns { data, manifestos } – prefer explicit manifestos
+            setManifestos(response.data.manifestos || response.data.data || []);
         } catch (err) {
             console.error('Fetch manifestos error:', err);
             setError('Failed to load manifestos. Ensure you are logged in as a reviewer.');
@@ -40,7 +41,7 @@ export default function ReviewerDashboard() {
         setCommentsLoading(true);
         try {
             const response = await api.get(`/reviewers/comments/${manifestoId}`);
-            setComments(response.data.comments);
+            setComments(response.data.comments || response.data.data || []);
         } catch (err) {
             console.error('Fetch comments error:', err);
         } finally {
@@ -70,7 +71,8 @@ export default function ReviewerDashboard() {
                 manifestoId: selectedManifesto.id,
                 comment
             });
-            setComments([response.data.comment, ...comments]);
+            const newComment = response.data.comment || response.data.data;
+            setComments([newComment, ...comments]);
             setComment('');
         } catch (err) {
             console.error('Add comment error:', err);
@@ -226,7 +228,7 @@ export default function ReviewerDashboard() {
                                                     {new Date(c.createdAt).toLocaleString()}
                                                 </span>
                                             </div>
-                                            <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: 1.5 }}>{c.comment}</p>
+                                            <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: 1.5 }}>{c.comment || c.content}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -326,8 +328,8 @@ export default function ReviewerDashboard() {
                                     >
                                         <div className="flex-between items-start mb-sm">
                                             <div>
-                                                <h4 style={{ margin: 0 }}>{manifesto.Nomination?.candidate?.name}</h4>
-                                                <p className="text-muted text-sm">{manifesto.Nomination?.candidate?.department} • {manifesto.Nomination?.candidate?.rollNo}</p>
+                                                <h4 style={{ margin: 0 }}>{manifesto.nomination?.user?.name}</h4>
+                                                <p className="text-muted text-sm">{manifesto.nomination?.user?.department} • {manifesto.nomination?.user?.rollNo}</p>
                                             </div>
                                             <span className="badge badge-primary">{manifesto.phase?.toUpperCase()}</span>
                                         </div>
@@ -345,7 +347,7 @@ export default function ReviewerDashboard() {
                                             <div>
                                                 <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: 600 }}>{manifesto.fileName}</p>
                                                 <p className="text-muted" style={{ margin: 0, fontSize: '0.75rem' }}>
-                                                    Uploaded: {new Date(manifesto.uploadedAt).toLocaleDateString()}
+                                                    Uploaded: {new Date(manifesto.createdAt).toLocaleDateString()}
                                                 </p>
                                             </div>
                                         </div>
