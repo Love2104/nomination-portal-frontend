@@ -36,10 +36,8 @@ export default function Login() {
             <div className="container-sm">
                 <div className="card">
                     <div className="card-header text-center">
-                        <h1 style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                            🗳️ IITK Election Commission
-                        </h1>
-                        <p className="text-muted">Student Login</p>
+                        <div className="card-title">IITK Election Commission</div>
+                        <p className="text-muted">Student login</p>
                     </div>
 
                     <div className="card-body">
@@ -51,10 +49,11 @@ export default function Login() {
                                 <input
                                     type="email"
                                     className="form-input"
-                                    placeholder="yourname@iitk.ac.in"
+                                    placeholder="Enter your email"
                                     value={formData.email}
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     required
+                                    disabled={loading}
                                 />
                             </div>
 
@@ -68,7 +67,8 @@ export default function Login() {
                                         value={formData.password}
                                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                         required
-                                        style={{ paddingRight: '40px' }}
+                                        disabled={loading}
+                                        style={{ paddingRight: '84px' }}
                                     />
                                     <button
                                         type="button"
@@ -78,15 +78,19 @@ export default function Login() {
                                             right: '10px',
                                             top: '50%',
                                             transform: 'translateY(-50%)',
-                                            background: 'none',
-                                            border: 'none',
+                                            background: 'transparent',
+                                            border: '1px solid var(--border)',
+                                            borderRadius: '0.5rem',
+                                            padding: '0.35rem 0.6rem',
                                             cursor: 'pointer',
-                                            fontSize: '1.2rem',
-                                            color: '#666'
+                                            fontSize: '0.85rem',
+                                            color: 'var(--text-primary)'
                                         }}
                                         title={showPassword ? "Hide password" : "Show password"}
+                                        aria-label={showPassword ? "Hide password" : "Show password"}
+                                        disabled={loading}
                                     >
-                                        {showPassword ? "👁️" : "🔒"}
+                                        {showPassword ? "Hide" : "Show"}
                                     </button>
                                 </div>
                                 <div className="text-right mt-xs">
