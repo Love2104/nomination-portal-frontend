@@ -1,17 +1,43 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { sendSignInLinkToEmail } from 'firebase/auth';
+import { auth } from '../config/firebase';
 import api from '../utils/api';
 
 export default function ForgotPassword() {
     const navigate = useNavigate();
-    const [step, setStep] = useState(1); // 1: Email, 2: OTP & New Password
+    const [searchParams] = useSearchParams();
+    const isVerified = searchParams.get('verified') === 'true';
+
+    const [step, setStep] = useState(isVerified ? 2 : 1);
     const [email, setEmail] = useState('');
-    const [otp, setOtp] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
+    const [firebaseToken, setFirebaseToken] = useState('');
+
+    // If redirected from VerifyEmail with verified=true
+    useEffect(() => {
+        if (isVerified) {
+            const token = localStorage.getItem('resetFirebaseToken');
+            const storedEmail = localStorage.getItem('resetEmail');
+            if (token && storedEmail) {
+                setFirebaseToken(token);
+                setEmail(storedEmail);
+                setStep(2);
+            } else {
+                setError('Verification expired. Please try again.');
+                setStep(1);
+            }
+        }
+    }, [isVerified]);
+
+    const actionCodeSettings = {
+        url: `${window.location.origin}/verify-email`,
+        handleCodeInApp: true,
+    };
 
     const handleEmailSubmit = async (e) => {
         e.preventDefault();
@@ -20,12 +46,23 @@ export default function ForgotPassword() {
         setMessage('');
 
         try {
-            await api.post('/auth/forgot-password', { email });
-            setMessage(`OTP sent to ${email}. Please check your inbox.`);
-            setStep(2);
+            // First check if user exists in our DB
+            await api.post('/auth/check-email', { email });
+
+            // Send Firebase email link
+            await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+
+            localStorage.setItem('emailForSignIn', email);
+            localStorage.setItem('emailVerifyPurpose', 'reset');
+
+            setMessage(`Verification link sent to ${email}. Check your inbox and click the link to reset your password.`);
         } catch (err) {
             console.error('Forgot password error:', err);
-            setError(err.response?.data?.message || 'Failed to send OTP. Please try again.');
+            if (err.response?.data?.message) {
+                setError(err.response.data.message);
+            } else {
+                setError(err.message || 'Failed to send verification link. Please try again.');
+            }
         } finally {
             setLoading(false);
         }
@@ -38,14 +75,23 @@ export default function ForgotPassword() {
         setMessage('');
 
         try {
-            await api.post('/auth/reset-password', { email, otp, newPassword });
+            await api.post('/auth/reset-password-with-token', {
+                idToken: firebaseToken,
+                email,
+                newPassword
+            });
+
+            // Clean up
+            localStorage.removeItem('resetFirebaseToken');
+            localStorage.removeItem('resetEmail');
+            localStorage.removeItem('emailForSignIn');
+            localStorage.removeItem('emailVerifyPurpose');
+
             setMessage('Password reset successful! Redirecting to login...');
-            setTimeout(() => {
-                navigate('/login');
-            }, 2000);
+            setTimeout(() => navigate('/login'), 2000);
         } catch (err) {
             console.error('Reset password error:', err);
-            setError(err.response?.data?.message || 'Failed to reset password. Invalid OTP or expired.');
+            setError(err.response?.data?.message || 'Failed to reset password. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -60,7 +106,7 @@ export default function ForgotPassword() {
                             🔐 Password Reset
                         </h1>
                         <p className="text-muted">
-                            {step === 1 ? 'Enter your email to receive OTP' : 'Enter OTP and new password'}
+                            {step === 1 ? 'Enter your email to receive verification link' : 'Enter your new password'}
                         </p>
                     </div>
 
@@ -83,34 +129,13 @@ export default function ForgotPassword() {
                                     />
                                 </div>
                                 <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
-                                    {loading ? 'Sending OTP...' : 'Send OTP'}
+                                    {loading ? 'Sending...' : 'Send Verification Link'}
                                 </button>
                             </form>
                         ) : (
                             <form onSubmit={handleResetSubmit}>
-                                <div className="form-group">
-                                    <label className="form-label">Email Address</label>
-                                    <input
-                                        type="email"
-                                        className="form-input"
-                                        value={email}
-                                        disabled
-                                        style={{ background: '#f5f5f5' }}
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label className="form-label">OTP</label>
-                                    <input
-                                        type="text"
-                                        className="form-input"
-                                        placeholder="Enter 6-digit OTP"
-                                        value={otp}
-                                        onChange={(e) => setOtp(e.target.value)}
-                                        required
-                                        maxLength="6"
-                                        autoFocus
-                                    />
+                                <div className="alert alert-success" style={{ marginBottom: '1rem' }}>
+                                    ✅ Email verified: <strong>{email}</strong>
                                 </div>
 
                                 <div className="form-group">
@@ -150,17 +175,6 @@ export default function ForgotPassword() {
                                 <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
                                     {loading ? 'Resetting Password...' : 'Reset Password'}
                                 </button>
-
-                                <div className="text-center mt-md">
-                                    <button
-                                        type="button"
-                                        className="btn btn-sm btn-outline"
-                                        onClick={() => setStep(1)}
-                                        disabled={loading}
-                                    >
-                                        Resend OTP / Change Email
-                                    </button>
-                                </div>
                             </form>
                         )}
 

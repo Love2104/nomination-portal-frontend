@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 // Pages
 import Register from './pages/Register';
 import Login from './pages/Login';
+import VerifyEmail from './pages/VerifyEmail';
 import StudentDashboard from './pages/StudentDashboard';
 import CandidateDashboard from './pages/CandidateDashboard';
 import SuperadminDashboard from './pages/SuperadminDashboard';
@@ -84,6 +85,7 @@ function AppContent() {
                 <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
                 <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
                 <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+                <Route path="/verify-email" element={<VerifyEmail />} />
                 <Route path="/reviewer/login" element={<ReviewerLogin />} />
 
                 {/* Dashboard Router */}
